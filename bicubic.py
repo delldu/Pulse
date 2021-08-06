@@ -11,7 +11,6 @@ class BicubicDownSample(nn.Module):
         https://clouard.users.greyc.fr/Pantheon/experiments/rescaling/index-en.html#bicubic
         """
         abs_x = torch.abs(x)
-        # self = BicubicDownSample()
         # x = tensor(-1.9844)
         # a = -0.5
 
@@ -45,9 +44,6 @@ class BicubicDownSample(nn.Module):
             ],
             dtype=torch.float32,
         )
-        # pdb.set_trace()
-        # (Pdb) a
-        # self = BicubicDownSample()
         # factor = 32
         # cuda = True
         # padding = 'reflect'
@@ -62,11 +58,10 @@ class BicubicDownSample(nn.Module):
         self.padding = padding
         for param in self.parameters():
             param.requires_grad = False
-        # pdb.set_trace()
         # (Pdb) k1.size(), k2.size()
-        # (torch.Size([1, 1, 128, 1]), torch.Size([1, 1, 1, 128]))
+        # ([1, 1, 128, 1], [1, 1, 1, 128])
         # (Pdb) self.k1.size(), self.k2.size()
-        # (torch.Size([3, 1, 128, 1]), torch.Size([3, 1, 1, 128]))
+        # ([3, 1, 128, 1], [3, 1, 1, 128])
 
     def forward(self, x, nhwc=False, clip_round=False, byte_output=False):
         # x = torch.from_numpy(x).type('torch.FloatTensor')

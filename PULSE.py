@@ -112,8 +112,6 @@ class PULSE(torch.nn.Module):
         # lr_schedule = 'linear1cycledrop'
         # kwargs = {'input_dir': 'input', 'output_dir': 'runs', 'cache_dir': 'cache', 'duplicates': 1, 'batch_size': 1}
 
-        tile_latent = True
-
         # seed = None
         if seed:
             torch.manual_seed(seed)

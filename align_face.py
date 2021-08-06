@@ -6,7 +6,7 @@ import dlib
 from pathlib import Path
 from bicubic import BicubicDownSample
 
-improt torch
+import torch
 import torchvision
 
 import numpy as np
@@ -46,8 +46,8 @@ def get_landmark(filepath, predictor):
     # (Pdb) dets -- rectangles[[(67, 80) (175, 187)]]
 
     filepath = Path(filepath)
-    print(f"{filepath.name}: {len(dets)} faces detected")
-    
+    print(f"{filepath.name}: {len(dets)} face detected")
+
     shapes = [predictor(img, d) for k, d in enumerate(dets)]
     # (Pdb) type(shapes), len(shapes), shapes[0].rect
     # (<class 'list'>, 1, (67,80,175,187)
@@ -229,6 +229,8 @@ if __name__ == "__main__":
     assert args.output_size * factor == 1024
 
     downsample = BicubicDownSample(factor=factor)
+    downsample = downsample.eval()
+
     totensor = torchvision.transforms.ToTensor()
     toimage = torchvision.transforms.ToPILImage()
 

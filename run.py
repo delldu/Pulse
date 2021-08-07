@@ -50,7 +50,7 @@ parser.add_argument(
 parser.add_argument(
     "-duplicates",
     type=int,
-    default=5,
+    default=3,
     help="How many HR images to produce for every image in the input directory",
 )
 parser.add_argument(
@@ -63,7 +63,7 @@ parser.add_argument(
     "-loss_str", type=str, default="100*L2+0.05*GEOCROSS", help="Loss function to use"
 )
 parser.add_argument(
-    "-eps", type=float, default=2e-3, help="Target for downscaling loss (L2)"
+    "-eps", type=float, default=5e-3, help="Target for downscaling loss (L2)"
 )
 parser.add_argument(
     "-noise_type", type=str, default="trainable", help="zero, fixed, or trainable"
@@ -126,6 +126,5 @@ for ref_im, ref_im_name in dataloader:
     out_im = model(ref_im, **kwargs)
     for j, (HR, LR) in enumerate(model(ref_im, **kwargs)):
         for i in range(kwargs["batch_size"]):
-            toPIL(HR[i].cpu().detach().clamp(0, 1)).save(
-                out_path / f"{ref_im_name[i]}.png"
-            )
+            output_filename = out_path / f"{ref_im_name[i]}.png"
+            toPIL(HR[i].cpu().detach().clamp(0, 1)).save(output_filename)

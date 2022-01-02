@@ -16,11 +16,12 @@ import pdb
     # http://dlib.net/files/shape_predictor_68_face_landmarks.dat.bz2
 """
 
+
 def get_landmark(filepath, predictor):
-    '''
+    """
     get landmark with dlib
     return: np.array shape=(68, 2)
-    '''
+    """
 
     detector = dlib.get_frontal_face_detector()
 
@@ -45,10 +46,10 @@ def get_landmark(filepath, predictor):
 
 
 def align_face(filepath, predictor):
-    '''
+    """
     param filepath: str
     return: list of PIL Images
-    '''
+    """
 
     lms = get_landmark(filepath, predictor)
     imgs = []
@@ -144,21 +145,17 @@ def align_face(filepath, predictor):
         )
         if enable_padding and max(pad) > border - 4:
             pad = np.maximum(pad, int(np.rint(qsize * 0.3)))
-            image = np.pad(
-                np.float32(image), ((pad[1], pad[3]), (pad[0], pad[2]), (0, 0)), "reflect"
-            )
+            image = np.pad(np.float32(image), ((pad[1], pad[3]), (pad[0], pad[2]), (0, 0)), "reflect")
             h, w, _ = image.shape
             y, x, _ = np.ogrid[:h, :w, :1]
             mask = np.maximum(
-                1.0
-                - np.minimum(np.float32(x) / pad[0], np.float32(w - 1 - x) / pad[2]),
-                1.0
-                - np.minimum(np.float32(y) / pad[1], np.float32(h - 1 - y) / pad[3]),
+                1.0 - np.minimum(np.float32(x) / pad[0], np.float32(w - 1 - x) / pad[2]),
+                1.0 - np.minimum(np.float32(y) / pad[1], np.float32(h - 1 - y) / pad[3]),
             )
             blur = qsize * 0.02
-            image += (
-                scipy.ndimage.gaussian_filter(image, [blur, blur, 0]) - image
-            ) * np.clip(mask * 3.0 + 1.0, 0.0, 1.0)
+            image += (scipy.ndimage.gaussian_filter(image, [blur, blur, 0]) - image) * np.clip(
+                mask * 3.0 + 1.0, 0.0, 1.0
+            )
             image += (np.median(image, axis=(0, 1)) - image) * np.clip(mask, 0.0, 1.0)
             image = PIL.Image.fromarray(np.uint8(np.clip(np.rint(image), 0, 255)), "RGB")
             quad += pad[:2]
@@ -179,18 +176,14 @@ def align_face(filepath, predictor):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
-    )
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument(
         "-input_dir",
         type=str,
         default="realpics",
         help="directory with orignal images",
     )
-    parser.add_argument(
-        "-output_dir", type=str, default="input", help="output directory"
-    )
+    parser.add_argument("-output_dir", type=str, default="input", help="output directory")
     parser.add_argument(
         "-cache_dir",
         type=str,

@@ -69,9 +69,7 @@ def open_url(
                         content_str = res.content.decode("utf-8")
                         if "download_warning" in res.headers.get("Set-Cookie", ""):
                             links = [
-                                html.unescape(link)
-                                for link in content_str.split('"')
-                                if "export=download" in link
+                                html.unescape(link) for link in content_str.split('"') if "export=download" in link
                             ]
                             if len(links) == 1:
                                 url = requests.compat.urljoin(url, links[0])
@@ -100,9 +98,7 @@ def open_url(
     if cache_dir is not None:
         safe_name = re.sub(r"[^0-9a-zA-Z-._]", "_", url_name)
         cache_file = os.path.join(cache_dir, url_md5 + "_" + safe_name)
-        temp_file = os.path.join(
-            cache_dir, "tmp_" + uuid.uuid4().hex + "_" + url_md5 + "_" + safe_name
-        )
+        temp_file = os.path.join(cache_dir, "tmp_" + uuid.uuid4().hex + "_" + url_md5 + "_" + safe_name)
         os.makedirs(cache_dir, exist_ok=True)
         with open(temp_file, "wb") as f:
             f.write(url_data)

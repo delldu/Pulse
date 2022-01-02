@@ -15,18 +15,9 @@ class BicubicDownSample(nn.Module):
         # a = -0.5
 
         if abs_x <= 1.0:
-            return (
-                (a + 2.0) * torch.pow(abs_x, 3.0)
-                - (a + 3.0) * torch.pow(abs_x, 2.0)
-                + 1
-            )
+            return (a + 2.0) * torch.pow(abs_x, 3.0) - (a + 3.0) * torch.pow(abs_x, 2.0) + 1
         elif 1.0 < abs_x < 2.0:
-            return (
-                a * torch.pow(abs_x, 3)
-                - 5.0 * a * torch.pow(abs_x, 2.0)
-                + 8.0 * a * abs_x
-                - 4.0 * a
-            )
+            return a * torch.pow(abs_x, 3) - 5.0 * a * torch.pow(abs_x, 2.0) + 8.0 * a * abs_x - 4.0 * a
         else:
             return 0.0
 
@@ -36,12 +27,7 @@ class BicubicDownSample(nn.Module):
         size = factor * 4
 
         k = torch.tensor(
-            [
-                self.bicubic_kernel(
-                    (i - torch.floor(torch.tensor(size / 2)) + 0.5) / factor
-                )
-                for i in range(size)
-            ],
+            [self.bicubic_kernel((i - torch.floor(torch.tensor(size / 2)) + 0.5) / factor) for i in range(size)],
             dtype=torch.float32,
         )
         # factor = 32
@@ -62,10 +48,11 @@ class BicubicDownSample(nn.Module):
         # ([1, 1, 128, 1], [1, 1, 1, 128])
         # (Pdb) self.k1.size(), self.k2.size()
         # ([3, 1, 128, 1], [3, 1, 1, 128])
+        self.filters1 = self.k1.type("torch{}.FloatTensor".format(self.cuda))
+        self.filters2 = self.k2.type("torch{}.FloatTensor".format(self.cuda))
 
-    def forward(self, x, nhwc=False, clip_round=False, byte_output=False):
+    def forward(self, x):
         # x = torch.from_numpy(x).type('torch.FloatTensor')
-        # byte_output = False
 
         filter_height = self.factor * 4
         filter_width = self.factor * 4
@@ -73,8 +60,6 @@ class BicubicDownSample(nn.Module):
 
         pad_along_height = max(filter_height - stride, 0)
         pad_along_width = max(filter_width - stride, 0)
-        filters1 = self.k1.type("torch{}.FloatTensor".format(self.cuda))
-        filters2 = self.k2.type("torch{}.FloatTensor".format(self.cuda))
 
         # compute actual padding values for each side
         pad_top = pad_along_height // 2
@@ -82,40 +67,13 @@ class BicubicDownSample(nn.Module):
         pad_left = pad_along_width // 2
         pad_right = pad_along_width - pad_left
 
-        # apply mirror padding
-        # nhwc = False
-        # if nhwc:
-        #     x = torch.transpose(torch.transpose(
-        #         x, 2, 3), 1, 2)   # NHWC to NCHW
-
         # downscaling performed by 1-d convolution
         x = F.pad(x, (0, 0, pad_top, pad_bottom), self.padding)
-        x = F.conv2d(input=x, weight=filters1, stride=(stride, 1), groups=3)
-        # clip_round = False
-        # if clip_round:
-        #     x = torch.clamp(torch.round(x), 0.0, 255.)
+        x = F.conv2d(input=x, weight=self.filters1, stride=(stride, 1), groups=3)
 
         x = F.pad(x, (pad_left, pad_right, 0, 0), self.padding)
-        x = F.conv2d(input=x, weight=filters2, stride=(1, stride), groups=3)
-        # # clip_round = False
-        # if clip_round:
-        #     x = torch.clamp(torch.round(x), 0.0, 255.)
+        x = F.conv2d(input=x, weight=self.filters2, stride=(1, stride), groups=3)
 
-        # pdb.set_trace()
-        # nhwc = False
-        # clip_round = False
-        # byte_output = False
-        # (Pdb) x.size()
-        # torch.Size([1, 3, 32, 32])
+        # (Pdb) x.size() -- [1, 3, 32, 32]
 
-        # nhwc = False
-        # clip_round = False
-        # byte_output = False
-
-        # if nhwc:
-        #     x = torch.transpose(torch.transpose(x, 1, 3), 1, 2)
-        # if byte_output:
-        #     return x.type('torch.ByteTensor'.format(self.cuda))
-        # else:
-        #     return x
         return x
